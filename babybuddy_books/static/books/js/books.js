@@ -272,7 +272,7 @@
               status.textContent = "Selected: " + data.title;
             } else {
               // Found on Open Library — create it then select
-              status.textContent = "Adding "" + data.title + "" to your library…";
+              status.textContent = 'Adding "' + data.title + '" to your library…';
               fetch(BOOK_QUICK_ADD_URL, {
                 method: "POST",
                 headers: {
