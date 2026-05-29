@@ -9,10 +9,17 @@
 (function () {
   "use strict";
 
-  const TITLE_SEARCH_URL = "/books/title-search/";
-  const ISBN_LOOKUP_URL = "/books/isbn-lookup/";
-  const BOOK_SEARCH_URL = "/books/search/";
-  const BOOK_QUICK_ADD_URL = "/books/quick-add/";
+  // Derive the /books/ prefix from the current page URL so that relative
+  // fetches work correctly behind HA's ingress proxy (which prepends a token
+  // path like /api/hassio_ingress/<token>/ before all addon URLs).
+  const _booksBase = (function () {
+    const m = window.location.pathname.match(/^(.*?)\/books\//);
+    return m ? m[1] + "/books/" : "/books/";
+  })();
+  const TITLE_SEARCH_URL = _booksBase + "title-search/";
+  const ISBN_LOOKUP_URL = _booksBase + "isbn-lookup/";
+  const BOOK_SEARCH_URL = _booksBase + "search/";
+  const BOOK_QUICK_ADD_URL = _booksBase + "quick-add/";
 
   // =========================================================================
   // BOOK FORM — title autocomplete + ISBN lookup + scanner

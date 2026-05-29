@@ -7,10 +7,10 @@ class BooksConfig(BabyBuddyPluginConfig):
     label = "books"
     verbose_name = "Books"
 
-    # Nav: top-level "Readings" link inserted after Timeline
     babybuddy_nav_label = "Readings"
     babybuddy_nav_url_name = "books:reading-list"
     babybuddy_nav_icon = "icon-note"
+    babybuddy_nav_group = "activities"
 
     # Dashboard: summary card (templates/books/cards/summary.html)
     babybuddy_has_dashboard_card = True
