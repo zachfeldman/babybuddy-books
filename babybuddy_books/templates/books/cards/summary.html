@@ -1,5 +1,6 @@
 {% load book_tags i18n %}
 {% book_card_data child as data %}
+{% if data.count or not request.user.settings.dashboard_hide_empty %}
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">
@@ -41,3 +42,4 @@
         </a>
     </div>
 </div>
+{% endif %}
