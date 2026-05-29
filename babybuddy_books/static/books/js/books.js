@@ -195,11 +195,38 @@
       if (!suggestionsEl) return;
       suggestionsEl.innerHTML = "";
       if (!results.length) {
-        // Show a "no results" hint
-        const empty = document.createElement("div");
-        empty.className = "list-group-item text-muted small py-2";
-        empty.textContent = "No books found. Scan an ISBN to add one.";
-        suggestionsEl.appendChild(empty);
+        const q = searchInput ? searchInput.value.trim() : "";
+        const container = document.createElement("div");
+        container.className = "list-group-item py-2";
+        container.innerHTML =
+          '<div class="text-muted small mb-2">No matching books — add one:</div>' +
+          '<div class="d-flex gap-2 flex-wrap">' +
+          '<input type="text" class="form-control form-control-sm flex-grow-1" id="books-inline-title" placeholder="Title">' +
+          '<input type="text" class="form-control form-control-sm flex-grow-1" id="books-inline-author" placeholder="Author (optional)">' +
+          '<button type="button" class="btn btn-sm btn-primary text-nowrap" id="books-inline-add">Add &amp; Select</button>' +
+          '</div>';
+        suggestionsEl.appendChild(container);
+        const inlineTitle = container.querySelector("#books-inline-title");
+        const inlineAuthor = container.querySelector("#books-inline-author");
+        const inlineAdd = container.querySelector("#books-inline-add");
+        inlineTitle.value = q;
+        inlineAdd.addEventListener("click", function () {
+          const title = inlineTitle.value.trim();
+          if (!title) { inlineTitle.focus(); return; }
+          inlineAdd.disabled = true;
+          inlineAdd.textContent = "Adding…";
+          fetch(BOOK_QUICK_ADD_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrf() },
+            body: JSON.stringify({ title: title, author: inlineAuthor.value.trim() }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (book) { selectBook(book); })
+            .catch(function () {
+              inlineAdd.disabled = false;
+              inlineAdd.textContent = "Add & Select";
+            });
+        });
       } else {
         results.forEach(function (book) {
           const a = document.createElement("a");
