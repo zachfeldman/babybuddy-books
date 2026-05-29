@@ -1,0 +1,42 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n static %}
+{% block title %}
+    {% if object %}{% trans "Edit Book" %}{% else %}{% trans "Add a Book" %}{% endif %}
+{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'books:book-list' %}">{% trans "Books" %}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">
+        {% if object %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}
+    </li>
+{% endblock %}
+{% block content %}
+    <h1>{% if object %}{% trans "Edit Book" %}{% else %}{% trans "Add a Book" %}{% endif %}</h1>
+
+    {# ISBN scan / title search toolbar #}
+    <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
+        <button type="button" class="btn btn-outline-primary btn-sm" id="books-scan-btn">
+            <i class="icon-note" aria-hidden="true"></i> {% trans "Scan ISBN" %}
+        </button>
+        <span class="text-muted small">{% trans "or start typing a title below for autocomplete" %}</span>
+    </div>
+
+    {# Hidden video element for camera scanning #}
+    <div id="books-scanner-container" class="mb-3" style="display:none;">
+        <video id="books-scanner-video" style="width:100%;max-width:400px;border-radius:8px;" autoplay playsinline></video>
+        <div class="mt-1">
+            <button type="button" class="btn btn-sm btn-danger" id="books-scan-stop">{% trans "Cancel" %}</button>
+        </div>
+        <p id="books-scan-status" class="text-muted small mt-1"></p>
+    </div>
+
+    {# Autocomplete dropdown #}
+    <div id="books-suggestions" class="list-group mb-2" style="display:none;max-width:500px;position:absolute;z-index:1000;"></div>
+
+    {% include 'babybuddy/form.html' %}
+{% endblock %}
+{% block javascript %}
+    <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
+    <script src="{% static 'books/js/books.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+{% block title %}{% trans "Books" %}{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'books:reading-list' %}">{% trans "Readings" %}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Manage Books" %}</li>
+{% endblock %}
+{% block content %}
+    <h1>
+        {% trans "Manage Books" %}
+        {% if perms.books.add_book %}
+            <a href="{% url 'books:book-add' %}" class="btn btn-sm btn-success">
+                <i class="icon-add" aria-hidden="true"></i> {% trans "Add Book" %}
+            </a>
+        {% endif %}
+    </h1>
+    <div class="table-responsive">
+        <table class="table table-borderless table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>{% trans "Actions" %}</th>
+                    <th>{% trans "Cover" %}</th>
+                    <th>{% trans "Title" %}</th>
+                    <th>{% trans "Author" %}</th>
+                    <th>{% trans "ISBN" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in object_list %}
+                    <tr>
+                        <td>
+                            {% if perms.books.change_book %}
+                                <a href="{% url 'books:book-update' book.pk %}" class="btn btn-sm btn-secondary">
+                                    <i class="icon-edit" aria-hidden="true"></i>
+                                </a>
+                            {% endif %}
+                            {% if perms.books.delete_book %}
+                                <a href="{% url 'books:book-delete' book.pk %}" class="btn btn-sm btn-danger">
+                                    <i class="icon-delete" aria-hidden="true"></i>
+                                </a>
+                            {% endif %}
+                            {% if perms.books.add_bookreading %}
+                                <a href="{% url 'books:reading-add' %}?book={{ book.pk }}" class="btn btn-sm btn-success">
+                                    <i class="icon-add" aria-hidden="true"></i> {% trans "Log" %}
+                                </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if book.cover_url %}
+                                <img src="{{ book.cover_url }}" alt="{{ book.title }}" height="48">
+                            {% endif %}
+                        </td>
+                        <td>{{ book.title }}</td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.isbn }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-muted text-center py-4">
+                            {% trans "No books yet." %}
+                            {% if perms.books.add_book %}
+                                <a href="{% url 'books:book-add' %}">{% trans "Add one!" %}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'babybuddy/paginator.html' %}
+{% endblock %}

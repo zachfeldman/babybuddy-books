@@ -1,0 +1,88 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+{% block title %}{% trans "Reading Log" %}{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Readings" %}</li>
+{% endblock %}
+{% block content %}
+    <h1>
+        {% trans "Readings" %}
+        {% if perms.books.add_bookreading %}
+            <a href="{% url 'books:reading-add' %}" class="btn btn-sm btn-success">
+                <i class="icon-add" aria-hidden="true"></i> {% trans "Log Reading" %}
+            </a>
+        {% endif %}
+        {% if perms.books.view_book %}
+            <a href="{% url 'books:book-list' %}" class="btn btn-sm btn-outline-secondary">
+                {% trans "Manage Books" %}
+            </a>
+        {% endif %}
+    </h1>
+
+    {# Child filter #}
+    {% if children|length > 1 %}
+        <div class="mb-3">
+            <form method="get" class="d-inline-flex gap-2 align-items-center">
+                <label class="form-label mb-0">{% trans "Filter by child:" %}</label>
+                <select name="child" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto;">
+                    <option value="">{% trans "All children" %}</option>
+                    {% for child in children %}
+                        <option value="{{ child.slug }}" {% if child.slug == selected_child %}selected{% endif %}>{{ child }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-borderless table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>{% trans "Actions" %}</th>
+                    <th>{% trans "Date" %}</th>
+                    <th>{% trans "Child" %}</th>
+                    <th>{% trans "Cover" %}</th>
+                    <th>{% trans "Book" %}</th>
+                    <th>{% trans "Notes" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reading in object_list %}
+                    <tr>
+                        <td>
+                            {% if perms.books.change_bookreading %}
+                                <a href="{% url 'books:reading-update' reading.pk %}" class="btn btn-sm btn-secondary">
+                                    <i class="icon-edit" aria-hidden="true"></i>
+                                </a>
+                            {% endif %}
+                            {% if perms.books.delete_bookreading %}
+                                <a href="{% url 'books:reading-delete' reading.pk %}" class="btn btn-sm btn-danger">
+                                    <i class="icon-delete" aria-hidden="true"></i>
+                                </a>
+                            {% endif %}
+                        </td>
+                        <td>{{ reading.date_read }}</td>
+                        <td>{{ reading.child }}</td>
+                        <td>
+                            {% if reading.book.cover_url %}
+                                <img src="{{ reading.book.cover_url }}" alt="" height="40">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ reading.book.title }}</strong>
+                            {% if reading.book.author %}<br><small class="text-muted">{{ reading.book.author }}</small>{% endif %}
+                        </td>
+                        <td>{{ reading.notes }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-muted text-center py-4">
+                            {% trans "No readings logged yet." %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'babybuddy/paginator.html' %}
+{% endblock %}

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-babybuddy-books"
+version = "0.1.0"
+description = "Books plugin for Baby Buddy — track books read to your child"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "django>=4.2",
+]
+
+[project.entry-points."babybuddy.plugins"]
+books = "babybuddy_books.apps:BooksConfig"
+
+[tool.setuptools.packages.find]
+include = ["babybuddy_books*"]
+
+[tool.setuptools.package-data]
+babybuddy_books = ["static/**/*", "templates/**/*"]
