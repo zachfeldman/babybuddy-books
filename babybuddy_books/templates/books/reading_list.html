@@ -52,8 +52,8 @@
                     <tr>
                         <td>
                             {% if perms.books.change_bookreading %}
-                                <a href="{% url 'books:reading-update' reading.pk %}" class="btn btn-sm btn-secondary">
-                                    <i class="icon-edit" aria-hidden="true"></i>
+                                <a href="{% url 'books:reading-update' reading.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="icon-update" aria-hidden="true"></i>
                                 </a>
                             {% endif %}
                             {% if perms.books.delete_bookreading %}

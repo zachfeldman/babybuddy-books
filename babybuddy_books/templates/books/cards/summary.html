@@ -1,45 +1,36 @@
 {% load book_tags i18n %}
 {% book_card_data child as data %}
 {% if data.count or not hide_empty %}
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">
-            <i class="icon-note" aria-hidden="true"></i>
-            {% trans "Readings" %}
-        </h5>
+<div class="card card-dashboard">
+    <div class="card-header bg-info text-white">
+        <i class="icon-note pull-left" aria-hidden="true"></i>
+        <a href="{% url 'books:reading-list' %}?child={{ child.slug }}" class="text-white">{% trans "Readings" %}</a>
     </div>
     <div class="card-body">
         {% if data.count %}
-            <p class="card-text display-6 text-center">{{ data.count }}</p>
-            <p class="text-center text-muted small mb-2">{% trans "readings" %}</p>
-            {% if data.last_reading %}
-                <div class="d-flex align-items-center gap-2 mt-2">
-                    {% if data.last_reading.book.cover_url %}
-                        <img src="{{ data.last_reading.book.cover_url }}"
-                             alt="{{ data.last_reading.book.title }}"
-                             height="56"
-                             class="rounded shadow-sm">
-                    {% endif %}
-                    <div>
-                        <div class="fw-semibold small">{{ data.last_reading.book.title }}</div>
-                        {% if data.last_reading.book.author %}
-                            <div class="text-muted small">{{ data.last_reading.book.author }}</div>
+            <span class="card-title"><strong>{{ data.count }} {% trans "readings" %}</strong></span>
+            <div class="card-text">
+                {% if data.last_reading %}
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                        {% if data.last_reading.book.cover_url %}
+                            <img src="{{ data.last_reading.book.cover_url }}"
+                                 alt="{{ data.last_reading.book.title }}"
+                                 height="56"
+                                 class="rounded shadow-sm">
                         {% endif %}
-                        <div class="text-muted small">{{ data.last_reading.date_read }}</div>
+                        <div>
+                            <div class="fw-semibold small">{{ data.last_reading.book.title }}</div>
+                            {% if data.last_reading.book.author %}
+                                <div class="text-muted small">{{ data.last_reading.book.author }}</div>
+                            {% endif %}
+                            <div class="text-muted small">{{ data.last_reading.date_read }}</div>
+                        </div>
                     </div>
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
         {% else %}
-            <p class="card-text text-muted text-center">{% trans "No readings logged yet." %}</p>
+            <p class="card-text text-center">{% trans "No readings logged yet." %}</p>
         {% endif %}
-    </div>
-    <div class="card-footer d-flex justify-content-between">
-        <a href="{% url 'books:reading-add' %}?child={{ child.slug }}" class="btn btn-sm btn-success">
-            <i class="icon-add" aria-hidden="true"></i> {% trans "Log Reading" %}
-        </a>
-        <a href="{% url 'books:reading-list' %}?child={{ child.slug }}" class="btn btn-sm btn-outline-secondary">
-            {% trans "View All" %}
-        </a>
     </div>
 </div>
 {% endif %}

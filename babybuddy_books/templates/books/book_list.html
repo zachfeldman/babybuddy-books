@@ -32,8 +32,8 @@
                     <tr>
                         <td>
                             {% if perms.books.change_book %}
-                                <a href="{% url 'books:book-update' book.pk %}" class="btn btn-sm btn-secondary">
-                                    <i class="icon-edit" aria-hidden="true"></i>
+                                <a href="{% url 'books:book-update' book.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="icon-update" aria-hidden="true"></i>
                                 </a>
                             {% endif %}
                             {% if perms.books.delete_book %}
