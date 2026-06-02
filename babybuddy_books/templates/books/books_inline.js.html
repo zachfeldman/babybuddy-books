@@ -1,0 +1,304 @@
+<script>
+/**
+ * books.js - Baby Buddy Books plugin (inlined for HA WKWebView compatibility)
+ */
+
+(function () {
+
+  var _booksBase = (function () {
+    var m = window.location.pathname.match(/^(.*?)\/books\//);
+    return m ? m[1] + "/books/" : "/books/";
+  })();
+  var TITLE_SEARCH_URL = _booksBase + "title-search/";
+  var BOOK_SEARCH_URL = _booksBase + "search/";
+  var BOOK_QUICK_ADD_URL = _booksBase + "quick-add/";
+
+  function initBookForm() {
+    var titleInput = document.querySelector("[data-books-autocomplete='title']");
+    if (!titleInput) return;
+
+    var authorInput = document.getElementById("id_author");
+    var isbnInput = document.querySelector("[data-books-isbn-input='true']");
+    var coverInput = document.getElementById("id_cover_url");
+    var suggestions = document.getElementById("books-suggestions");
+
+    function fillBookForm(data) {
+      if (titleInput && data.title) titleInput.value = data.title;
+      if (authorInput && data.author) authorInput.value = data.author;
+      if (isbnInput && data.isbn) isbnInput.value = data.isbn;
+      if (coverInput && data.cover_url) coverInput.value = data.cover_url;
+      hideSuggestions();
+    }
+
+    function hideSuggestions() {
+      if (suggestions) {
+        suggestions.style.display = "none";
+        suggestions.innerHTML = "";
+      }
+    }
+
+    function showSuggestions(results) {
+      if (!suggestions) return;
+      suggestions.innerHTML = "";
+      if (!results.length) { suggestions.style.display = "none"; return; }
+      results.forEach(function (item) {
+        var a = document.createElement("a");
+        a.href = "#";
+        a.className = "list-group-item list-group-item-action py-2";
+        var coverHtml = item.cover_url
+          ? '<img src="' + item.cover_url + '" height="40" class="me-2 rounded" style="vertical-align:middle;">'
+          : "";
+        var authorHtml = item.author
+          ? '<small class="text-muted d-block">' + item.author + "</small>"
+          : "";
+        a.innerHTML = coverHtml + "<strong>" + item.title + "</strong>" + authorHtml;
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          fillBookForm(item);
+        });
+        suggestions.appendChild(a);
+      });
+      if (titleInput) {
+        var rect = titleInput.getBoundingClientRect();
+        suggestions.style.top = (rect.bottom + window.scrollY) + "px";
+        suggestions.style.left = (rect.left + window.scrollX) + "px";
+        suggestions.style.width = rect.width + "px";
+        suggestions.style.position = "absolute";
+      }
+      suggestions.style.display = "block";
+    }
+
+    var debounceTimer = null;
+    titleInput.addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+      var q = titleInput.value.trim();
+      if (q.length < 2) { hideSuggestions(); return; }
+      debounceTimer = setTimeout(function () {
+        fetch(TITLE_SEARCH_URL + "?q=" + encodeURIComponent(q))
+          .then(function (r) { return r.json(); })
+          .then(function (data) { showSuggestions(data.results || []); })
+          .catch(function () { hideSuggestions(); });
+      }, 300);
+    });
+
+    document.addEventListener("click", function (e) {
+      if (suggestions && !suggestions.contains(e.target) && e.target !== titleInput) {
+        hideSuggestions();
+      }
+    });
+  }
+
+  function initReadingForm() {
+    var bookIdInput = document.querySelector("[data-books-book-id='true']");
+    if (!bookIdInput) return;
+
+    var searchInput = document.getElementById("books-book-search");
+    var suggestionsEl = document.getElementById("books-suggestions");
+    var selectedDisplay = document.getElementById("books-selected-display");
+    var selectedCover = document.getElementById("books-selected-cover");
+    var selectedTitle = document.getElementById("books-selected-title");
+    var selectedAuthor = document.getElementById("books-selected-author");
+    var clearBtn = document.getElementById("books-clear-selection");
+    var searchUi = document.getElementById("books-search-ui");
+
+    function selectBook(book) {
+      bookIdInput.value = book.id;
+      selectedTitle.textContent = book.title;
+      selectedAuthor.textContent = book.author || "";
+      if (book.cover_url) {
+        selectedCover.src = book.cover_url;
+        selectedCover.classList.remove("d-none");
+      } else {
+        selectedCover.classList.add("d-none");
+      }
+      selectedDisplay.classList.remove("d-none");
+      searchUi.classList.add("d-none");
+      hideSuggestions();
+    }
+
+    function clearSelection() {
+      bookIdInput.value = "";
+      searchInput.value = "";
+      selectedDisplay.classList.add("d-none");
+      searchUi.classList.remove("d-none");
+      searchInput.focus();
+    }
+
+    if (window.BOOKS_INITIAL) {
+      selectBook(window.BOOKS_INITIAL);
+    } else if (bookIdInput.value) {
+      fetch(BOOK_SEARCH_URL + "?q=")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var found = (data.results || []).filter(function (b) { return String(b.id) === bookIdInput.value; })[0];
+          if (found) selectBook(found);
+        })
+        .catch(function () {});
+    }
+
+    if (clearBtn) clearBtn.addEventListener("click", clearSelection);
+
+    function hideSuggestions() {
+      if (suggestionsEl) {
+        suggestionsEl.style.display = "none";
+        suggestionsEl.innerHTML = "";
+      }
+    }
+
+    function positionDropdown() {
+      if (!searchInput || !suggestionsEl) return;
+      var rect = searchInput.getBoundingClientRect();
+      suggestionsEl.style.top = (rect.bottom + window.scrollY) + "px";
+      suggestionsEl.style.left = (rect.left + window.scrollX) + "px";
+      suggestionsEl.style.width = rect.width + "px";
+    }
+
+    function renderBookItem(book, onSelect) {
+      var a = document.createElement("a");
+      a.href = "#";
+      a.className = "list-group-item list-group-item-action py-2 d-flex align-items-center gap-2";
+      var img = book.cover_url
+        ? '<img src="' + book.cover_url + '" height="40" class="rounded flex-shrink-0">'
+        : '<div style="width:28px;"></div>';
+      var author = book.author
+        ? '<small class="text-muted d-block">' + book.author + "</small>"
+        : "";
+      a.innerHTML = img + "<div><strong>" + book.title + "</strong>" + author + "</div>";
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        onSelect(book);
+      });
+      return a;
+    }
+
+    function addManualEntry(container, q) {
+      var row = document.createElement("div");
+      row.className = "list-group-item py-2";
+      row.innerHTML =
+        '<div class="text-muted small mb-2">Add manually:</div>' +
+        '<div class="d-flex gap-2 flex-wrap">' +
+        '<input type="text" class="form-control form-control-sm flex-grow-1" id="books-inline-title" placeholder="Title">' +
+        '<input type="text" class="form-control form-control-sm flex-grow-1" id="books-inline-author" placeholder="Author (optional)">' +
+        '<button type="button" class="btn btn-sm btn-outline-primary text-nowrap" id="books-inline-add">Add &amp; Select</button>' +
+        '</div>';
+      container.appendChild(row);
+      var inlineTitle = row.querySelector("#books-inline-title");
+      var inlineAuthor = row.querySelector("#books-inline-author");
+      var inlineAdd = row.querySelector("#books-inline-add");
+      inlineTitle.value = q;
+      inlineAdd.addEventListener("click", function () {
+        var title = inlineTitle.value.trim();
+        if (!title) { inlineTitle.focus(); return; }
+        inlineAdd.disabled = true;
+        inlineAdd.textContent = "Adding...";
+        fetch(BOOK_QUICK_ADD_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrf() },
+          body: JSON.stringify({ title: title, author: inlineAuthor.value.trim() }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (book) { selectBook(book); })
+          .catch(function () {
+            inlineAdd.disabled = false;
+            inlineAdd.textContent = "Add & Select";
+          });
+      });
+    }
+
+    function showBookSuggestions(results, q) {
+      if (!suggestionsEl) return;
+      suggestionsEl.innerHTML = "";
+      positionDropdown();
+
+      if (results.length) {
+        results.forEach(function (book) {
+          suggestionsEl.appendChild(renderBookItem(book, selectBook));
+        });
+        suggestionsEl.style.display = "block";
+        return;
+      }
+
+      var header = document.createElement("div");
+      header.className = "list-group-item py-2 text-muted small";
+      header.textContent = "Searching Open Library...";
+      suggestionsEl.appendChild(header);
+      suggestionsEl.style.display = "block";
+
+      fetch(TITLE_SEARCH_URL + "?q=" + encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          suggestionsEl.innerHTML = "";
+          positionDropdown();
+          var olResults = data.results || [];
+          if (olResults.length) {
+            var olHeader = document.createElement("div");
+            olHeader.className = "list-group-item py-1 text-muted small fw-semibold";
+            olHeader.textContent = "From Open Library - click to add & select:";
+            suggestionsEl.appendChild(olHeader);
+            olResults.forEach(function (item) {
+              suggestionsEl.appendChild(renderBookItem(item, function (book) {
+                fetch(BOOK_QUICK_ADD_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrf() },
+                  body: JSON.stringify(book),
+                })
+                  .then(function (r) { return r.json(); })
+                  .then(function (created) { selectBook(created); })
+                  .catch(function () {});
+              }));
+            });
+          }
+          addManualEntry(suggestionsEl, q);
+          suggestionsEl.style.display = "block";
+        })
+        .catch(function () {
+          suggestionsEl.innerHTML = "";
+          positionDropdown();
+          addManualEntry(suggestionsEl, q);
+          suggestionsEl.style.display = "block";
+        });
+    }
+
+    var debounce = null;
+    if (searchInput) {
+      searchInput.addEventListener("focus", function () {
+        var q = searchInput.value.trim();
+        if (!q) return;
+        fetch(BOOK_SEARCH_URL + "?q=" + encodeURIComponent(q))
+          .then(function (r) { return r.json(); })
+          .then(function (data) { showBookSuggestions(data.results || [], q); })
+          .catch(function () { showBookSuggestions([], q); });
+      });
+
+      searchInput.addEventListener("input", function () {
+        clearTimeout(debounce);
+        var q = searchInput.value.trim();
+        if (!q) { hideSuggestions(); return; }
+        debounce = setTimeout(function () {
+          fetch(BOOK_SEARCH_URL + "?q=" + encodeURIComponent(q))
+            .then(function (r) { return r.json(); })
+            .then(function (data) { showBookSuggestions(data.results || [], q); })
+            .catch(function () { showBookSuggestions([], q); });
+        }, 200);
+      });
+    }
+
+    document.addEventListener("click", function (e) {
+      if (suggestionsEl && !suggestionsEl.contains(e.target) && e.target !== searchInput) {
+        hideSuggestions();
+      }
+    });
+  }
+
+  function getCsrf() {
+    var el = document.querySelector("[name=csrfmiddlewaretoken]");
+    return el ? el.value : "";
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initBookForm();
+    initReadingForm();
+  });
+
+})();
+</script>

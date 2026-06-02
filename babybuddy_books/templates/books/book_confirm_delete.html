@@ -1,0 +1,18 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+{% block title %}{% trans "Delete Book" %}{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'books:book-list' %}">{% trans "Books" %}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Delete" %}</li>
+{% endblock %}
+{% block content %}
+    <form role="form" method="post">
+        {% csrf_token %}
+        <h1>{% blocktrans with title=object.title %}Delete "{{ title }}"?{% endblocktrans %}</h1>
+        <p class="text-muted">{% trans "This will also delete all reading records for this book." %}</p>
+        <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
+        <a href="{% url 'books:book-list' %}" class="btn btn-default">{% trans "Cancel" %}</a>
+    </form>
+{% endblock %}

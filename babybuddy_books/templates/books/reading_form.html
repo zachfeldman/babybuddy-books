@@ -1,0 +1,120 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n static %}
+{% block title %}
+    {% if object %}{% trans "Edit Reading" %}{% else %}{% trans "Log a Reading" %}{% endif %}
+{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'books:reading-list' %}">{% trans "Readings" %}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">
+        {% if object %}{% trans "Edit" %}{% else %}{% trans "Log" %}{% endif %}
+    </li>
+{% endblock %}
+{% block content %}
+    <h1>{% if object %}{% trans "Edit Reading" %}{% else %}{% trans "Log a Reading" %}{% endif %}</h1>
+
+    <div class="container-fluid pb-5">
+        <form role="form" method="post">
+            {% csrf_token %}
+
+            {# --- Child --- #}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ form.child.label }}</label>
+                <div class="col-sm-10 overflow-auto">
+                    {{ form.child }}
+                    {% if form.child.errors %}
+                        <div class="invalid-feedback d-block">{{ form.child.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# --- Book (searchable + ISBN scanner) --- #}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{% trans "Book" %}</label>
+                <div class="col-sm-10">
+                    {# Hidden FK input — populated by JS when an existing library book is selected #}
+                    {{ form.book }}
+                    {# Pending book data — populated by JS when an Open Library/manual book is selected; server creates the book on submit #}
+                    <input type="hidden" name="books_pending_data" id="books-pending-data">
+
+                    {# Selected book display (shown after selection) #}
+                    <div id="books-selected-display" class="d-none mb-2 p-2 border rounded d-flex align-items-center gap-2 bg-body-secondary">
+                        <img id="books-selected-cover" src="" alt="" height="56" class="rounded shadow-sm d-none">
+                        <div class="flex-grow-1">
+                            <div id="books-selected-title" class="fw-semibold"></div>
+                            <div id="books-selected-author" class="text-muted small"></div>
+                        </div>
+                        <button type="button" id="books-clear-selection" class="btn btn-sm btn-outline-secondary">
+                            {% trans "Change" %}
+                        </button>
+                    </div>
+
+                    {# Search UI (hidden after selection) #}
+                    <div id="books-search-ui">
+                        <input type="text"
+                               id="books-book-search"
+                               class="form-control{% if form.book.errors %} is-invalid{% endif %}"
+                               placeholder="{% trans 'Search your books…' %}"
+                               autocomplete="off">
+                        <div id="books-suggestions" class="list-group mt-1" style="display:none;position:absolute;z-index:1050;max-height:50vh;overflow-y:auto;"></div>
+                    </div>
+
+                    {% if form.book.errors %}
+                        <div class="invalid-feedback d-block mt-1">{{ form.book.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# --- Start time --- #}
+            <div class="row mb-3">
+                <label for="{{ form.start.id_for_label }}" class="col-sm-2 col-form-label">{{ form.start.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.start }}
+                    {% if form.start.errors %}
+                        <div class="invalid-feedback d-block">{{ form.start.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# --- End time --- #}
+            <div class="row mb-3">
+                <label for="{{ form.end.id_for_label }}" class="col-sm-2 col-form-label">{{ form.end.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.end }}
+                    {% if form.end.errors %}
+                        <div class="invalid-feedback d-block">{{ form.end.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# --- Notes --- #}
+            <div class="row mb-3">
+                <label for="{{ form.notes.id_for_label }}" class="col-sm-2 col-form-label">{{ form.notes.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div class="invalid-feedback d-block">{{ form.notes.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="submit" class="submit-primary btn btn-primary btn-lg">{% trans "Submit" %}</button>
+        </form>
+    </div>
+
+    {# Pass existing book data to JS if editing #}
+    {% if object and object.book %}
+        <script>
+            window.BOOKS_INITIAL = {
+                id: {{ object.book.pk }},
+                title: "{{ object.book.title|escapejs }}",
+                author: "{{ object.book.author|escapejs }}",
+                cover_url: "{{ object.book.cover_url|escapejs }}"
+            };
+        </script>
+    {% endif %}
+{% endblock %}
+{% block javascript %}
+    <script src="{% static 'books/js/books.js' %}"></script>
+{% endblock %}

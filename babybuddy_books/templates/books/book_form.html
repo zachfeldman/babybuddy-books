@@ -1,0 +1,24 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n static %}
+{% block title %}
+    {% if object %}{% trans "Edit Book" %}{% else %}{% trans "Add a Book" %}{% endif %}
+{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'books:book-list' %}">{% trans "Books" %}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">
+        {% if object %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}
+    </li>
+{% endblock %}
+{% block content %}
+    <h1>{% if object %}{% trans "Edit Book" %}{% else %}{% trans "Add a Book" %}{% endif %}</h1>
+
+    {# Autocomplete dropdown #}
+    <div id="books-suggestions" class="list-group mb-2" style="display:none;max-width:500px;position:absolute;z-index:1000;"></div>
+
+    {% include 'babybuddy/form.html' %}
+{% endblock %}
+{% block javascript %}
+    <script src="{% static 'books/js/books.js' %}"></script>
+{% endblock %}
