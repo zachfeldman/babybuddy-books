@@ -8,7 +8,7 @@
     </div>
     <div class="card-body">
         {% if data.count %}
-            <span class="card-title"><strong>{{ data.count }} {% trans "readings" %}</strong></span>
+            <span class="card-title"><strong>{{ data.count }} {% blocktrans count count=data.count %}reading{% plural %}readings{% endblocktrans %}</strong></span>
             <div class="card-text">
                 {% if data.last_reading %}
                     <div class="d-flex align-items-center gap-2 mt-2">
